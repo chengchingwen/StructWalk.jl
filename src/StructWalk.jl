@@ -138,18 +138,14 @@ julia> prewalk(x -> @show(x) isa Integer ? StructWalk.LeafNode(x // 2) : x isa T
 x = (3, 5)
 x = 4
 x = 6
-2 => 3
+2//1 => 3//1
 
 ```
 
 See also: [`postwalk`](@ref), [`LeafNode`](@ref)
 """
 prewalk(f, x) = prewalk(f, WalkStyle, x)
-function prewalk(f, style, x)
-    y = f(x)
-    y == x && return x
-    return walk(identity, style, y, x -> prewalk(f, style, x))
-end
+prewalk(f, style, x) = walk(identity, style, f(x), x -> prewalk(f, style, x))
 
 
 @specialize

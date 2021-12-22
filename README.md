@@ -50,7 +50,7 @@ julia> prewalk(x -> @show(x) isa Integer ? StructWalk.LeafNode(x // 2) : x isa T
 x = (3, 5)
 x = 4
 x = 6
-2 => 3
+2//1 => 3//1
 
 ```
 
