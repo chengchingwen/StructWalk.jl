@@ -37,10 +37,10 @@ function walkstyle(::Type{WalkStyle}, x::T) where T
     isleaf = iszero(n)
     return T.name.wrapper, isleaf ? () : ntuple(i->getfield(x, i), n)
 end
-walkstyle(::Type{WalkStyle}, x::T) where {T <: Array} = t->convert(AbstractArray, t), (x,), true
-walkstyle(::Type{WalkStyle}, x::T) where {T <: Tuple} = Tuple, (x,), true
-walkstyle(::Type{WalkStyle}, x::T) where {T <: NamedTuple} = let name=keys(x); x->NamedTuple{name}(x); end, (x,), true
-walkstyle(::Type{WalkStyle}, x::Expr) = (head, args)->Expr(head, args...), (x.head, x.args)
+
+# default walkstyle for some types
+include("./walkstyle.jl")
+
 
 """
     LeafNode(x)

@@ -4,6 +4,7 @@ using Test
 @testset "StructWalk.jl" begin
     @test postwalk(x->x isa Expr ? eval(x) : x, :(2*3+5)) == 2*3+5
     @test postwalk(x->x isa Expr ? eval(x) : x==:+ ? :* : x==:* ? :+ : x, :(2*3+5)) == (2+3)*5
+    @test postwalk(x-> x isa Int ? Float32(x) : x, Dict(:a=>3, :b=>5)) == Dict(:a=>3f0, :b=>5f0)
 
     struct C
         x::Int
@@ -20,5 +21,4 @@ using Test
 
     f(x) = x isa Integer ? StructWalk.LeafNode(x // 2) : x isa Tuple ? =>(x .+ 1...) : x
     @test prewalk(f, (3, 5)) == (2//1 => 3//1)
-
 end
