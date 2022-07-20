@@ -1,5 +1,19 @@
-walkstyle(::Type{WalkStyle}, x::T) where {T <: AbstractArray} = t->convert(AbstractArray, t), (x,), true
-walkstyle(::Type{WalkStyle}, x::T) where {T <: Tuple} = Tuple, (x,), true
-walkstyle(::Type{WalkStyle}, x::T) where {T <: NamedTuple} = let name=keys(x); x->NamedTuple{name}(x); end, (x,), true
-walkstyle(::Type{WalkStyle}, x::Expr) = (head, args)->Expr(head, args...), (x.head, x.args)
-walkstyle(::Type{WalkStyle}, x::T) where {T <: AbstractDict} = Dict, ((p for p in x),), true
+expr_constructor(head, args) = Expr(head, args...)
+
+constructor(::Type{WalkStyle}, x::Tuple) = Tuple
+constructor(::Type{WalkStyle}, x::NamedTuple) = let name = keys(x); x->NamedTuple{name}(x); end
+constructor(::Type{WalkStyle}, x::Expr) = expr_constructor
+
+children(::Type{WalkStyle}, x::AbstractArray) = (x,)
+children(::Type{WalkStyle}, x::Tuple) = (x,)
+children(::Type{WalkStyle}, x::NamedTuple) = (x,)
+children(::Type{WalkStyle}, x::AbstractDict) = ((p for p in x),)
+
+for type in :(
+    AbstractArray,
+    AbstractDict,
+    Tuple,
+    NamedTuple,
+).args
+    @eval iscontainer(::Type{WalkStyle}, x::$type) = true
+end

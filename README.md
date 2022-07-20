@@ -80,22 +80,22 @@ import StructWalk: WalkStyle, walkstyle
 
 struct FunctorStyle <: WalkStyle end
 
-walkstyle(::FunctorStyle, x::AbstractArray) = identity, ()
+StructWalk.children(::FunctorStyle, x::AbstractArray) = ()
 
 struct Foo{X, Y}
-	x::X
-	y::Y
+    x::X
+    y::Y
 end
 
 struct Baz
-	x
-	y
+    x
+    y
 end
 
-walkstyle(::FunctorStyle, b::Baz) = x->Baz(x, b.y), (b.x,)
+StructWalk.constructor(::FunctorStyle, b::Baz) = Base.Fix2(Baz, b.y)
+StructWalk.children(::FunctorStyle, b::Baz) = (b.x,)
 
-myfmap(f, x) = StructWalk.walk(f, identity, FunctorStyle(), x, x -> myfmap(f, x))
-
+myfmap(f, x) = mapleaves(f, FunctorStyle(), x)
 
 julia> foo = Foo(1, [1, 2, 3])
 Foo{Int64, Vector{Int64}}(1, [1, 2, 3])
