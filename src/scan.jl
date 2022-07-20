@@ -1,13 +1,4 @@
-"""
-    scan(f, [style = WalkStyle], x)
-
-Walk through `x` without constructing anything.
-"""
-scan(f, x) = scan(f, WalkStyle, x)
-scan(f, style::WALKSTYLE, x) = scan(f, f, style, x)
-scan(f, g, style::WALKSTYLE, x) = scan(f, g, identity, style, x)
-scan(f, g, h, style::WALKSTYLE, x) = scan(f, g, h, style, x -> scan(f, g, h, style, x), x)
-function scan(f, g, h, style::WALKSTYLE, inner_scan, x)
+function walkby(f, g, h, style::WALKSTYLE, inner_scan, x)
     _, fields, iscontainer = walkstyle(style, x)
     isleaf = isempty(fields)
     if isleaf
@@ -21,11 +12,7 @@ function scan(f, g, h, style::WALKSTYLE, inner_scan, x)
     return nothing
 end
 
-scan(f, x, y, z...) = scan(f, AlignedStyle, x, y, z...)
-scan(f, style::ALIGNED, x, y, z...) = scan(f, f, style, x, y, z...)
-scan(f, g, style::ALIGNED, x, y, z...) = scan(f, g, identity, style, x, y, z...)
-scan(f, g, h, style::ALIGNED, x, y, z...) = scan(f, g, h, style, x -> scan(f, g, h, style, x...), x, y, z...)
-function scan(f, g, h, style::ALIGNED, inner_scan, x, y, z...)
+function walkby(f, g, h, style::ALIGNED, inner_scan, x, y, z...)
     _, C = alignedstyle(style, x, y, z...)
     isleaf = isempty(C)
     X = (x, y, z...)
@@ -38,3 +25,22 @@ function scan(f, g, h, style::ALIGNED, inner_scan, x, y, z...)
     end
     return nothing
 end
+
+
+"""
+    scan(f, [style = WalkStyle], x)
+
+Walk through `x` without constructing anything.
+"""
+scan(f, x) = scan(f, WalkStyle, x)
+scan(f, style::WALKSTYLE, x) = scan(f, f, style, x)
+scan(f, g, style::WALKSTYLE, x) = scan(f, g, identity, style, x)
+scan(f, g, h, style::WALKSTYLE, x) = walkby(f, g, h, style, x -> scan(f, g, h, style, x), x)
+
+scan(f, x, y, z...) = scan(f, AlignedStyle, x, y, z...)
+scan(f, style::WalkStyle, x, y, z...) = scan(f, DefaultAlignedStyle(style), x, y, z...)
+scan(f, g, style::WalkStyle, x, y, z...) = scan(f, g, DefaultAlignedStyle(style), x, y, z...)
+scan(f, g, h, style::WalkStyle, x, y, z...) = scan(f, g, h, DefaultAlignedStyle(style), x, y, z...)
+scan(f, style::ALIGNED, x, y, z...) = scan(f, f, style, x, y, z...)
+scan(f, g, style::ALIGNED, x, y, z...) = scan(f, g, identity, style, x, y, z...)
+scan(f, g, h, style::ALIGNED, x, y, z...) = walkby(f, g, h, style, x -> scan(f, g, h, style, x...), x, y, z...)
