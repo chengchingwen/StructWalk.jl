@@ -55,10 +55,26 @@ Base.:(==)(a::Baz, b::Baz) = a.x == b.x && a.y == b.y
         b = (0.5, (0.3, 0.5))
         c = (d = 4, z = (w = 0.5, b = 0.25))
 
+        @test postwalk(identity, a, b) == ((1, 0.5), ((2, 0.3), (3, 0.5)))
         @test mapleaves(Base.splat(+), a, b) == (1.5, (2.3, 3.5))
         @test mapleaves(Base.splat(+), a, c) == (5, (w = 2.5, b = 3.25))
 
         foo = Foo(2, [1,2,3])
         @test mapleaves(Base.splat(*), FunctorStyle(), foo, (3, 5)) == [6, [5, 10, 15]]
+    end
+
+    @testset "scan" begin
+        collector()= let c = []; return c, x->push!(c, x); end
+        fcollect(xs...) = ((C, f) = collector(); StructWalk.scan(f, xs...); C)
+        a = (x = 1, y = (w = 2, b = 3))
+        b = (0.5, (0.3, 0.5))
+        c = (d = 4, z = (w = 0.5, b = 0.25))
+
+        @test fcollect(a) == [a, a[1], a[2], a[2][1], a[2][2]]
+        @test fcollect(a, b) == [(a, b), (a[1], b[1]), (a[2], b[2]), (a[2][1], b[2][1]), (a[2][2], b[2][2])]
+
+        foo = Foo(2, [1,2,3])
+        @test fcollect(foo) == [foo, foo.x, foo.y, 1, 2, 3]
+        @test fcollect(FunctorStyle(), foo) == [foo, foo.x, foo.y]
     end
 end
