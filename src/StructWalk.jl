@@ -74,7 +74,7 @@ iscontainer(x) = iscontainer(WalkStyle, x)
 iscontainer(s::WalkStyle, x) = iscontainer(WalkStyle, x)
 iscontainer(::Type{WalkStyle}, x) = false
 
-const WALKSTYLE = Union{WalkStyle, Type{WalkStyle}}
+const WALKSTYLE = Union{WalkStyle, Type{<:WalkStyle}}
 
 # default walkstyle for some types
 include("./walkstyle.jl")
