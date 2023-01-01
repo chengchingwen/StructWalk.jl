@@ -14,7 +14,7 @@ WalkStyle(::Type{<:AlignedStyle{W}}) where W = W()
 constructor(s::ALIGNED, x::T, y::T, z::T...) where T = T
 constructor(s::ALIGNED, x::NamedTuple{name}, y::NamedTuple{name}, z::NamedTuple{name}...) where name = NamedTuple{name}
 constructor(s::ALIGNED, x::Union{NamedTuple, Tuple}, y::Union{NamedTuple, Tuple}, z::Union{NamedTuple, Tuple}...) = Tuple
-constructor(s::ALIGNED, x, y, z...) = Vector
+constructor(s::ALIGNED, x, y, z...) = identity
 
 function children(style::ALIGNED, x)
     wstyle = WalkStyle(style)
