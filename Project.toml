@@ -1,7 +1,7 @@
 name = "StructWalk"
 uuid = "31cdf514-beb7-4750-89db-dda9d2eb8d3d"
 authors = ["chengchingwen <adgjl5645@hotmail.com> and contributors"]
-version = "0.2.0"
+version = "0.2.1"
 
 [deps]
 ConstructionBase = "187b0558-2788-49d3-abe0-74a17ed4e7c9"
