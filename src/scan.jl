@@ -28,10 +28,12 @@ end
 
 
 """
-    scan(f, [g = f, style = WalkStyle], x)    
+    scan(f, [g = f, style = WalkStyle], x)
 
 Walk through `x` without constructing anything and applying `f` to leaf nodes and
 `g` to every other node.
+
+See also [`mapleaves`](@ref).
 """
 scan(f, x) = scan(f, WalkStyle, x)
 scan(f, style::WALKSTYLE, x) = scan(f, f, style, x)
