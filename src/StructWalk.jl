@@ -6,7 +6,7 @@ using ConstructionBase: constructorof
 export prewalk, postwalk, mapleaves
 
 """
-Abstract type `WalkStyle`
+    abstract type WalkStyle and
 
 Subtype `WalkStyle` and overload [`walkstyle`](@ref) to define custom walking behaviors (constructor / children /...).
 """
@@ -18,12 +18,12 @@ abstract type WalkStyle end
 Should return a tuple of length 3 with:
 
     1. [constructor](@ref): A proper constuctor for `T`, can be `identity` if `x` isa leaf.
-    2. [children](@ref): Children of `x` in a tuple, or empty tuple `()` if `x` is a leaf.
-    3. [iscontainer](@ref): A bool indicate whether element of 2. is the actual list of children. default to `false`.
-
-For example, since `Array` has 0 `fieldcount`, we doesn't split the value into a tuple as children.
- Instead, we return `(x,)` as children and the extra boolean `true`, so it will `walk`/`map` through `x`
- accordingly.
+    2. [children](@ref): Children of `x` in a tuple, or empty tuple `()` if `x` is a leaf. 
+        Named tuples are also allowed as alternatives to tuples. 
+    3. [iscontainer](@ref): A bool indicate whether element of 2. is the actual list of children.
+        For example, since `Array` has 0 `fieldcount`, we doesn't split the value into a tuple as children.
+        Instead, we return `(x,)` as children and the extra boolean `true`, so it will `walk`/`map` through `x`
+        accordingly. Default `false`.
 """
 function walkstyle end
 
@@ -77,7 +77,7 @@ iscontainer(::Type{WalkStyle}, x) = false
 const WALKSTYLE = Union{WalkStyle, Type{<:WalkStyle}}
 
 # default walkstyle for some types
-include("./walkstyle.jl")
+include("walkstyle.jl")
 
 """
     LeafNode(x)
@@ -222,8 +222,9 @@ x = (a = 2, b = (c = 4, d = 0))
 mapnonleaves(f, x) = mapnonleaves(f, WalkStyle, x)
 mapnonleaves(f, style::WALKSTYLE, x) = walk(identity, f, style, x -> mapnonleaves(f, style, x), x)
 
-include("./aligned.jl")
-include("./scan.jl")
+include("aligned.jl")
+include("scan.jl")
+include("functors.jl")
 
 @specialize
 
