@@ -10,9 +10,18 @@ Transform functions for Julia struct. Can be viewed as a general version of `Mac
 # Examples
 
 ## Basic usage
-
+In this first example, we walk over a struct `xs`, applying a function `f` which increments integers.
+Using `prewalk`, `f` sees the node first and then the transformed leaves.
+Using `postwalk`,  `f` sees the leaves first and then the transformed node:
 ```julia
-julia> postwalk(x -> @show(x) isa Integer ? x + 1 : x, (a=2, b=(c=4, d=0)))
+xs = (a=2, b=(c=4, d=0))
+
+f(x) = x
+f(x::Integer) = x + 1
+```
+
+```julia-repl
+julia> postwalk(x -> f(@show(x)), xs) # w/o printing: postwalk(f, xs)
 x = 2
 x = 4
 x = 0
@@ -20,19 +29,7 @@ x = (c = 5, d = 1)
 x = (a = 3, b = (c = 5, d = 1))
 (a = 3, b = (c = 5, d = 1))
 
-julia> postwalk(x -> @show(x) isa Integer ? x + 1 : x .+ 1, (3, 5))
-x = 3
-x = 5
-x = (4, 6)
-(5, 7)
-
-julia> postwalk(x -> @show(x) isa Integer ? x // 2 : x isa Tuple ? =>(x .+ 1...) : x, (3, 5))
-x = 3
-x = 5
-x = (3//2, 5//2)
-5//2 => 7//2
-
-julia> prewalk(x -> @show(x) isa Integer ? x + 1 : x, (a=2, b=(c=4, d=0)))
+julia> prewalk(x -> f(@show(x)), xs)
 x = (a = 2, b = (c = 4, d = 0))
 x = 2
 x = (c = 4, d = 0)
@@ -40,13 +37,56 @@ x = 4
 x = 0
 (a = 3, b = (c = 5, d = 1))
 
-julia> prewalk(x -> @show(x) isa Integer ? x + 1 : x .+ 1, (3, 5))
-x = (3, 5)
-x = 4
-x = 6
-(5, 7)
+```
 
-julia> prewalk(x -> @show(x) isa Integer ? StructWalk.LeafNode(x // 2) : x isa Tuple ? =>(x .+ 1...) : x, (3, 5))
+Since `prewalk` and `postwalk` differ in the order of function application, return values can differ as well: 
+```julia
+g(x::Integer) = x + 1
+g(x::Tuple) = x .* 2
+```
+
+```julia-repl
+julia> postwalk(x -> g(@show(x)), (3, 5))
+x = 3
+x = 5
+x = (4, 6)
+(8, 12)
+
+julia> prewalk(x -> g(@show(x)), (3, 5))
+x = (3, 5)
+x = 6
+x = 10
+(7, 11)
+
+```
+
+To avoid infinite recursion using `prewalk`, return values can be wrapped in `StructWalk.LeafNode`.
+
+In the following example, this is required to avoid recursion over the `Integer` fields of the `Rational` number struct:
+```julia-repl
+julia> postwalk((3, 5)) do x 
+           @show(x) 
+           if x isa Integer 
+               return x // 2 
+           elseif x isa Tuple 
+               return Pair(x .+ 1...)
+           end 
+           return x
+       end  
+x = 3
+x = 5
+x = (3//2, 5//2)
+5//2 => 7//2
+
+julia> prewalk((3, 5)) do x 
+           @show(x) 
+           if x isa Integer 
+               return StructWalk.LeafNode(x // 2)
+           elseif x isa Tuple 
+               return Pair(x .+ 1...)
+           end 
+           return x
+       end  
 x = (3, 5)
 x = 4
 x = 6
@@ -54,14 +94,13 @@ x = 6
 
 ```
 
-
 ## Structural replace
 
 ```julia
-julia> x = (a=3, b=(w=3, b=0))
+julia> xs = (a=3, b=(w=3, b=0))
 (a = 3, b = (w = 3, b = 0))
 
-julia> postwalk(x) do x
+julia> postwalk(xs) do x
            if x isa NamedTuple{(:w, :b)}
                return x[1]=>x[2]
            end
@@ -71,8 +110,7 @@ julia> postwalk(x) do x
 
 ```
 
-
-## More example
+## More examples
 
 ```julia
 using StructWalk
